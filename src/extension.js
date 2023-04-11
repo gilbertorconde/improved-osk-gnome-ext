@@ -21,7 +21,7 @@ let _indicator;
 let settings;
 
 function isInUnlockDialogMode() {
-  return Main.sessionMode.currentMode === 'unlock-dialog';
+  return Main.sessionMode.currentMode === "unlock-dialog";
 }
 
 // Indicator
@@ -90,46 +90,49 @@ function override_relayout() {
 }
 
 function override_addRowKeys(keys, layout) {
+  return;
   for (let i = 0; i < keys.length; ++i) {
     const key = keys[i];
-    const {strings} = key;
+    const { strings } = key;
     const commitString = strings?.shift();
 
-    let button = new Key({
-      commitString,
-      label: key.label,
-      iconName: key.iconName,
-      keyval: key.keyval,
-    }, strings);
+    let button = new Key(
+      {
+        commitString,
+        label: key.label,
+        iconName: key.iconName,
+        keyval: key.keyval,
+      },
+      strings
+    );
 
-    if (key.width !== null)
-      button.setWidth(key.width);
+    if (key.width !== null) button.setWidth(key.width);
 
-    if (key.action !== 'modifier') {
-      button.connect('commit', (_actor, keyval, str) => {
+    if (key.action !== "modifier") {
+      button.connect("commit", (_actor, keyval, str) => {
         this._commitAction(keyval, str);
       });
     }
 
     if (key.action !== null) {
-      button.connect('released', () => {
-        if (key.action === 'hide') {
+      button.connect("released", () => {
+        if (key.action === "hide") {
           this.close();
-        } else if (key.action === 'languageMenu') {
+        } else if (key.action === "languageMenu") {
           this._popupLanguageMenu(button);
-        } else if (key.action === 'emoji') {
+        } else if (key.action === "emoji") {
           this._toggleEmoji();
-        } else if (key.action === 'modifier') {
+        } else if (key.action === "modifier") {
           // === Override starts here ===
 
           // Pass the whole key object to allow switching layers on "Shift" press
           this._toggleModifier(key);
 
           // === Override ends here ===
-        } else if (key.action === 'delete') {
+        } else if (key.action === "delete") {
           this._toggleDelete(true);
           this._toggleDelete(false);
-        } else if (!this._longPressed && key.action === 'levelSwitch') {
+        } else if (!this._longPressed && key.action === "levelSwitch") {
           this._setActiveLayer(key.level);
           // === Override starts here ===
 
@@ -145,22 +148,22 @@ function override_addRowKeys(keys, layout) {
     }
 
     // === Override starts here ===
-    if (key.iconName === 'keyboard-shift-symbolic') layout.shiftKeys.push(button);
+    if (key.iconName === "keyboard-shift-symbolic")
+      layout.shiftKeys.push(button);
     // === Override ends here ===
 
-    if (key.action === 'delete') {
-      button.connect('long-press',
-          () => this._toggleDelete(true));
+    if (key.action === "delete") {
+      button.connect("long-press", () => this._toggleDelete(true));
     }
 
-    if (key.action === 'modifier') {
+    if (key.action === "modifier") {
       let modifierKeys = this._modifierKeys[key.keyval] || [];
       modifierKeys.push(button);
       this._modifierKeys[key.keyval] = modifierKeys;
     }
 
     if (key.action || key.keyval)
-      button.keyButton.add_style_class_name('default-key');
+      button.keyButton.add_style_class_name("default-key");
 
     layout.appendKey(button, button.keyButton.keyWidth);
   }
@@ -168,7 +171,7 @@ function override_addRowKeys(keys, layout) {
 
 function override_toggleModifier(key) {
   const { keyval, level } = key;
-  const SHIFT_KEYVAL = '0xffe1';
+  const SHIFT_KEYVAL = "0xffe1";
   const isActive = this._modifiers.has(keyval);
 
   if (keyval === SHIFT_KEYVAL) this._setActiveLayer(level);
@@ -199,7 +202,7 @@ function override_setActiveLayer(activeLevel) {
 
   // === Override ends here ===
   this._currentPage = currentPage;
-  this._currentPage._destroyID = this._currentPage.connect('destroy', () => {
+  this._currentPage._destroyID = this._currentPage.connect("destroy", () => {
     this._currentPage = null;
   });
   this._updateCurrentPageVisible();
@@ -209,16 +212,18 @@ function override_setActiveLayer(activeLevel) {
 
 function override_getCurrentGroup() {
   // Special case for Korean, if Hangul mode is disabled, use the 'us' keymap
-  if (this._currentSource.id === 'hangul') {
-      const inputSourceManager = InputSourceManager.getInputSourceManager();
-      const currentSource = inputSourceManager.currentSource;
-      let prop;
-      for (let i = 0; (prop = currentSource.properties.get(i)) !== null; ++i) {
-          if (prop.get_key() === 'InputMode' &&
-              prop.get_prop_type() === IBus.PropType.TOGGLE &&
-              prop.get_state() !== IBus.PropState.CHECKED)
-              return 'us';
-      }
+  if (this._currentSource.id === "hangul") {
+    const inputSourceManager = InputSourceManager.getInputSourceManager();
+    const currentSource = inputSourceManager.currentSource;
+    let prop;
+    for (let i = 0; (prop = currentSource.properties.get(i)) !== null; ++i) {
+      if (
+        prop.get_key() === "InputMode" &&
+        prop.get_prop_type() === IBus.PropType.TOGGLE &&
+        prop.get_state() !== IBus.PropState.CHECKED
+      )
+        return "us";
+    }
   }
   return this._currentSource.xkbId;
 }
@@ -230,7 +235,7 @@ function enable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = override_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     override_lastDeviceIsTouchScreen;
-  Keyboard.KeyboardController.prototype["getCurrentGroup"] = 
+  Keyboard.KeyboardController.prototype["getCurrentGroup"] =
     override_getCurrentGroup;
 
   // Unregister original osk layouts resource file
@@ -247,7 +252,7 @@ function disable_overrides() {
   Keyboard.Keyboard.prototype["_addRowKeys"] = backup_addRowKeys;
   Keyboard.KeyboardManager.prototype["_lastDeviceIsTouchscreen"] =
     backup_lastDeviceIsTouchScreen;
-  Keyboard.KeyboardController.prototype["getCurrentGroup"] = 
+  Keyboard.KeyboardController.prototype["getCurrentGroup"] =
     backup_getCurrentGroup;
 
   // Unregister modified osk layouts resource file
@@ -298,8 +303,7 @@ function init() {
   backup_lastDeviceIsTouchScreen =
     Keyboard.KeyboardManager._lastDeviceIsTouchscreen;
 
-  backup_getCurrentGroup =
-    Keyboard.KeyboardController.getCurrentGroup;
+  backup_getCurrentGroup = Keyboard.KeyboardController.getCurrentGroup;
 
   currentSeat = Clutter.get_default_backend().get_default_seat();
   backup_touchMode = currentSeat.get_touch_mode;
