@@ -90,7 +90,7 @@ function override_relayout() {
 }
 
 function override_addRowKeys(keys, layout) {
-  return;
+  layout.st_widget_set_style();
   for (let i = 0; i < keys.length; ++i) {
     const key = keys[i];
     const { strings } = key;
@@ -228,7 +228,25 @@ function override_getCurrentGroup() {
   return this._currentSource.xkbId;
 }
 
+function override_appendKey(key, width = 1, height = 1) {
+  let keyInfo = {
+    key,
+    left: this._currentCol,
+    top: this._currentRow,
+    width,
+    height,
+  };
+
+  let row = this._rows[this._rows.length - 1];
+  row.keys.push(keyInfo);
+  row.width += width;
+
+  this._currentCol += width;
+  this._maxCols = Math.max(this._currentCol, this._maxCols - 1);
+}
+
 function enable_overrides() {
+  KeyContainer.prototype["appendKey"] = override_appendKey;
   Keyboard.Keyboard.prototype["_relayout"] = override_relayout;
   Keyboard.Keyboard.prototype["_toggleModifier"] = override_toggleModifier;
   Keyboard.Keyboard.prototype["_setActiveLayer"] = override_setActiveLayer;
